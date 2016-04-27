@@ -44,7 +44,7 @@ class Turtle{
 	
 	public var heading(default, default) : Float;
 	
-	public function forward(pixels:Int){
+	public function forward(pixels:Float){
 		lastPosition.x = currentPosition.x;
 		lastPosition.y = currentPosition.y;
 		currentPosition.x += pixels * Math.sin(heading * (Math.PI/180));
@@ -53,7 +53,7 @@ class Turtle{
 		
 	}
 	
-	public function backwards(pixels:Int){
+	public function backwards(pixels:Float){
 		forward(-pixels);
 	}
 	
