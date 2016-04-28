@@ -14,18 +14,26 @@ class Turtle{
 	
 	var lineBuffer:Array<LineSegment> = new Array<LineSegment>();
 	var imageDropBuffer:Array<ImageDrop> = new Array<ImageDrop>();
+	var trianglePoints:Array<Vector2> =  new Array<Vector2>();
+	var triangleSides:Array<Vector2> =  new Array<Vector2>();
 	
 	var linePool:Pool<LineSegment> = new Pool<LineSegment>();
 	var imagePool:Pool<ImageDrop> = new Pool<ImageDrop>();
 	
 	var clear:Bool = false;
-    
+    var iterateTriangle:Bool = false;
 	var shouldDraw:Bool = true;
 	
+	var trianglePosition:Int = 0;
+	var triangleLowerPosition:Int = 0;
+	var triangleSide:Int = 0;
+	
 	public var color(default,default) : Color  = Color.White;
+	public var triangleColor(default,default) : Color  = Color.White;
 	public var thickness(default,default) : Float  = 1;
 	public var buffer(default,default):Image;
 	public var drawLines(default,default):Bool = true;
+	
 	
 	public function new(x:Float, y:Float, buffer:Image){
         currentPosition = new Vector2(x,y);
@@ -47,9 +55,10 @@ class Turtle{
 	public function forward(pixels:Float){
 		lastPosition.x = currentPosition.x;
 		lastPosition.y = currentPosition.y;
+		//pushTrianglePoint();
 		currentPosition.x += pixels * Math.sin(heading * (Math.PI/180));
 		currentPosition.y += pixels * -Math.cos(heading * (Math.PI/180));
-		PushLine();
+		pushLine();
 		
 	}
 	
@@ -60,9 +69,10 @@ class Turtle{
 	public function jumpTo(x:Int, y:Int){
 		lastPosition.y = currentPosition.y;
 		lastPosition.x = currentPosition.x;
+		//pushTrianglePoint();
 		currentPosition.y = y;
 		currentPosition.x = x;
-		PushLine();
+		pushLine();
 		
 	}
 	
@@ -78,6 +88,11 @@ class Turtle{
 		turn(90);
 	}
 	
+	public function startTriangle(){
+		iterateTriangle = true;
+		//pushTriangleLine();
+	}
+	
 	public function dropImage(img:Image, scale:FastFloat = 1, useHeading:Bool = true, headingOffset:FastFloat = 0 ){
 		
 		if(!shouldDraw) return;
@@ -91,7 +106,7 @@ class Turtle{
 		imageDropBuffer.push(d);
 	}
 	
-	function PushLine() 
+	function pushLine() 
 	{
 		if(!drawLines || !shouldDraw) return;
 		
@@ -100,6 +115,33 @@ class Turtle{
 		l.end = new Vector2(currentPosition.x, currentPosition.y);
 		
 		lineBuffer.push(l);
+	}
+	
+	public function pushTrianglePoint(){
+		 	
+			if(triangleSides[triangleSide] == null) {
+				triangleSides.push(new Vector2());
+			}
+			
+			triangleSides[triangleSide].x = currentPosition.x;
+			triangleSides[triangleSide].y = currentPosition.y;
+			
+			triangleSide++;
+			if(triangleSide == 3){
+				triangleSide = 0;
+				
+				for(i in 0...3){
+					
+					if(trianglePoints[trianglePosition] == null) {
+						trianglePoints.push(new Vector2());
+					}
+							
+					trianglePoints[trianglePosition].x = triangleSides[i].x;
+					trianglePoints[trianglePosition].y = triangleSides[i].y;
+					trianglePosition++;
+				}
+				
+			}
 	}
     
 	public function start() {
@@ -117,7 +159,7 @@ class Turtle{
 		currentPosition.y = originPoint.y;
         lastPosition.x = currentPosition.x;
         lastPosition.y = currentPosition.y;
-		
+		trianglePosition = 0;
 		lineBuffer = [];
 		imageDropBuffer = [];
 		
@@ -130,8 +172,33 @@ class Turtle{
             clear = false;
         }
     
-		buffer.g2.color = color;
+		 buffer.g2.color = triangleColor;
 	
+		var triangleCount:Int =  Math.floor((trianglePosition+1)/3);
+		
+		 
+		if(triangleCount > 0){
+			
+			var v:Vector2;
+			var v1:Vector2;
+			var v2:Vector2;
+			
+			for(i in 0...triangleCount){
+
+				v = trianglePoints[i*3];
+				v1 = trianglePoints[3*i+1];
+				v2 = trianglePoints[3*i+2];
+				
+				buffer.g2.fillTriangle(
+					v.x, v.y,
+					v1.x, v1.y,
+					v2.x,v2.y);
+			}
+			trianglePosition = 0;
+		}
+		
+		buffer.g2.color = color;
+		
 		var l:LineSegment;
 		for (i in 0...lineBuffer.length) 
 		{
@@ -141,6 +208,8 @@ class Turtle{
 		}
 		
 		lineBuffer = [];
+		
+		buffer.g2.color = Color.White;
 		
 		var di:ImageDrop;
 		var halfWidth;

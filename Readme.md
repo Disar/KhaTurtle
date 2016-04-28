@@ -41,6 +41,9 @@ The lines and images aren't redrawn, instead the buffer isn't cleared until you 
     forward(pixels)  //Draws a line of pixels given in the current heading.
     backwards(pixels)//Similar to forward just in the opposite direction.
     jumpTo(x,y)      //Moves to the specified position
+    
+    pushTrianglePoint()//Adds the current position as a triangle point.
+                       //If 3 points are pushed a triangle is drawn 
 
     // Draws an image at the current position and heading.
     dropImage(image, scale, apply heading, offset)
@@ -53,6 +56,7 @@ The lines and images aren't redrawn, instead the buffer isn't cleared until you 
 
     heading   //Directly adjust the heading
     color     //Color of the current line.
+    triangleColor     //Color of the current line.
     thickness //The thickness of the current line.
     buffer    //The buffer to draw too.
     drawLines //Whether image should be drawn only.
